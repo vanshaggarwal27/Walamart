@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_a83a666b91daa7708cd8a903582bace8 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+        <div style="
+            position: fixed;
+            bottom: 50px;
+            left: 50px;
+            width: 250px;
+            padding: 15px;
+            background-color: rgba(255,255,255,0.9);
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            z-index: 9999;
+        ">
+        <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Total Route Summary</h4>
+        <p style="margin:0; font-size:14px;"><strong>Distance:</strong> 0.0 km</p>
+        <p style="margin:0; font-size:14px;"><strong>CO₂ Emissions:</strong> 0.0 kg</p>
+        </div>
+        
+    
+            <div class="folium-map" id="map_a83a666b91daa7708cd8a903582bace8" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_a83a666b91daa7708cd8a903582bace8 = L.map(
+                "map_a83a666b91daa7708cd8a903582bace8",
+                {
+                    center: [43.0731, -89.4012],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 6,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_9eaf2990be15487ba10421d58213c077 = L.tileLayer(
+                "https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=2sYJ1vozDNyamVYRoWLM",
+                {
+  "minZoom": 0,
+  "maxZoom": 18,
+  "maxNativeZoom": 18,
+  "noWrap": false,
+  "attribution": "MapTiler",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_9eaf2990be15487ba10421d58213c077.addTo(map_a83a666b91daa7708cd8a903582bace8);
+        
+    
+            var marker_280e35765cc203aa0a79d506b0545cec = L.marker(
+                [43.0731, -89.4012],
+                {
+}
+            ).addTo(map_a83a666b91daa7708cd8a903582bace8);
+        
+    
+            var icon_2f79c823c6c5951c261de9737caccc97 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_cee7567193bdc2734aa81b4d3d79aa0b = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_076281abe72d15c5aa3eea57fc412245 = $(`<div id="html_076281abe72d15c5aa3eea57fc412245" style="width: 100.0%; height: 100.0%;">Store: WI_1<br>State: WI</div>`)[0];
+                popup_cee7567193bdc2734aa81b4d3d79aa0b.setContent(html_076281abe72d15c5aa3eea57fc412245);
+            
+        
+
+        marker_280e35765cc203aa0a79d506b0545cec.bindPopup(popup_cee7567193bdc2734aa81b4d3d79aa0b)
+        ;
+
+        
+    
+    
+            marker_280e35765cc203aa0a79d506b0545cec.bindTooltip(
+                `<div>
+                     WI_1 (WI)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_280e35765cc203aa0a79d506b0545cec.setIcon(icon_2f79c823c6c5951c261de9737caccc97);
+            
+</script>
+</html>
