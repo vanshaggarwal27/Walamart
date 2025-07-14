@@ -196,12 +196,18 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         else:
             print(f"✅ SUCCESS: Got exactly {N} stores as requested")
 
+                print("\n=== STEP 6: STORE LOCATION SETUP ===")
         # Load or create mock store locations
         stores_file = uploads_dir / "store_locations.csv"
+        print(f"✓ Store locations file path: {stores_file}")
+        print(f"✓ Store locations file exists: {stores_file.exists()}")
+
         if not stores_file.exists():
+            print("✓ Creating store locations from scratch")
             # Get unique stores from predictions, prioritizing selected stores
             unique_stores = preds['store_id'].unique()
-            print(f"Found stores in predictions: {unique_stores}")
+            print(f"✓ Unique stores in predictions: {unique_stores}")
+            print(f"✓ Total unique stores: {len(unique_stores)}")
 
             # Ensure all selected stores are included
             all_stores_to_include = list(set(list(unique_stores) + selected_store_ids))
