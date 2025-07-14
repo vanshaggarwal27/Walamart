@@ -243,10 +243,17 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         routes_df = routes_df.merge(top_stores_list[["store_id", demand_col]], on="store_id", how="left")
         routes_df = routes_df.sort_values(by=demand_col, ascending=False)
 
-        if len(routes_df) == 0:
+                if len(routes_df) == 0:
             raise ValueError("No stores found for the given criteria")
 
-        print(f"Selected stores:\n{routes_df}")
+        print(f"Final selected stores count: {len(routes_df)}")
+        print(f"Selected stores for route optimization:\n{routes_df[['store_id', 'state', 'lat', 'lon']]}")
+
+        # Show demand information for selected stores
+        if demand_col in routes_df.columns:
+            print(f"Demand information for selected stores:")
+            for idx, row in routes_df.iterrows():
+                print(f"  {row['store_id']}: {row[demand_col]:.1f} units")
 
         # Initialize map
         center_lat = routes_df["lat"].mean()
