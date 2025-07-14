@@ -162,39 +162,39 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         else:
             raise ValueError(f"No demand column found. Available columns: {preds.columns.tolist()}")
 
-                                                print(f"✓ Using demand column: {demand_col}")
-        print(f"✓ Raw demand stats: min={preds[demand_col].min():.2f}, max={preds[demand_col].max():.2f}")
+                                                        print(f"[OK] Using demand column: {demand_col}")
+        print(f"[OK] Raw demand stats: min={preds[demand_col].min():.2f}, max={preds[demand_col].max():.2f}")
 
         print("\n=== STEP 4: AGGREGATING DEMAND BY STORE ===")
         # Aggregate demand by individual store (not by state)
         store_demand = preds.groupby("store_id")[demand_col].sum().reset_index()
-        print(f"✓ Aggregated demand for {len(store_demand)} stores")
-        print("✓ All store demands:")
+        print(f"[OK] Aggregated demand for {len(store_demand)} stores")
+        print("[OK] All store demands:")
         for idx, row in store_demand.iterrows():
             print(f"  {row['store_id']}: {row[demand_col]:.1f} units")
 
         print(f"\n=== STEP 5: SELECTING TOP {N} STORES ===")
-        print(f"✓ Requested N = {N}")
-        print(f"✓ Available stores = {len(store_demand)}")
+        print(f"[OK] Requested N = {N}")
+        print(f"[OK] Available stores = {len(store_demand)}")
 
         # Sort stores by demand and select top N stores
         store_demand = store_demand.sort_values(by=demand_col, ascending=False)
-        print(f"✓ Stores sorted by demand")
+        print(f"[OK] Stores sorted by demand")
 
         top_stores_list = store_demand.head(N)
-        print(f"✓ Selected top {len(top_stores_list)} stores:")
+        print(f"[OK] Selected top {len(top_stores_list)} stores:")
         for idx, row in top_stores_list.iterrows():
             print(f"  #{idx+1}: {row['store_id']} = {row[demand_col]:.1f} units")
 
         # Get the list of selected store IDs
         selected_store_ids = top_stores_list["store_id"].tolist()
-        print(f"✓ Final selected store IDs: {selected_store_ids}")
-        print(f"✓ Selected store count: {len(selected_store_ids)}")
+        print(f"[OK] Final selected store IDs: {selected_store_ids}")
+        print(f"[OK] Selected store count: {len(selected_store_ids)}")
 
         if len(selected_store_ids) != N:
-            print(f"❌ ERROR: Expected {N} stores but got {len(selected_store_ids)}")
+            print(f"[ERROR] Expected {N} stores but got {len(selected_store_ids)}")
         else:
-            print(f"✅ SUCCESS: Got exactly {N} stores as requested")
+            print(f"[SUCCESS] Got exactly {N} stores as requested")
 
                 print("\n=== STEP 6: STORE LOCATION SETUP ===")
         # Load or create mock store locations
