@@ -465,9 +465,9 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
 
         # Save map
         output_map = data_dir / "delivery_route_maptiler_osrm_co2.html"
-        m.save(output_map)
+                m.save(output_map)
 
-                # Calculate route efficiency based on optimization
+        # Calculate route efficiency based on optimization
         if len(coords) > 1:
             # Calculate theoretical minimum distance (as the crow flies)
             direct_distance = 0
