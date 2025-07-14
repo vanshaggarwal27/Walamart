@@ -322,9 +322,9 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             # Solve TSP to get optimal visiting order
             print(f"Solving TSP for {len(coords)} stores...")
             optimal_order = solve_tsp_networkx(coords)
-            print(f"Optimal visiting order: {optimal_order}")
+                        print(f"Optimal visiting order: {optimal_order}")
 
-                        # Reorder coordinates and routes_df according to TSP solution
+            # Reorder coordinates and routes_df according to TSP solution
             optimized_coords = [coords[i] for i in optimal_order]
             optimized_routes_df = routes_df.iloc[optimal_order].reset_index(drop=True)
 
