@@ -240,10 +240,14 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                             'lon': lon
                         })
 
-            stores = pd.DataFrame(store_locations)
+                        stores = pd.DataFrame(store_locations)
             print(f"Created store locations for {len(stores)} stores")
+            print(f"Store locations created:")
+            for idx, row in stores.iterrows():
+                print(f"  {row['store_id']}: {row['state']} at ({row['lat']}, {row['lon']})")
         else:
             stores = pd.read_csv(stores_file)
+            print(f"Loaded store locations from file: {len(stores)} stores")
 
                         # Debug: Check what stores we have
         print(f"Available stores in store locations: {stores['store_id'].tolist()}")
