@@ -291,7 +291,7 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             missing = set(selected_store_ids) - set(routes_df['store_id'].tolist())
             print(f"❌ Missing stores: {missing}")
         else:
-            print(f"✅ SUCCESS: Found all {len(selected_store_ids)} selected stores")
+            print(f"[SUCCESS] SUCCESS: Found all {len(selected_store_ids)} selected stores")
 
         if len(routes_df) < len(selected_store_ids):
             print(f"WARNING: Only found {len(routes_df)} stores out of {len(selected_store_ids)} requested")
@@ -335,21 +335,21 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             print("❌ FATAL ERROR: No stores found for route optimization!")
             raise ValueError("No stores found for the given criteria")
 
-        print(f"✅ FINAL STORE COUNT: {len(routes_df)} stores")
-        print(f"✅ Final stores for route optimization:")
+        print(f"[SUCCESS] FINAL STORE COUNT: {len(routes_df)} stores")
+        print(f"[SUCCESS] Final stores for route optimization:")
         for idx, row in routes_df.iterrows():
             print(f"  {idx+1}. {row['store_id']} ({row['state']}) at {row['lat']}, {row['lon']}")
 
         # Show demand information for selected stores
         if demand_col in routes_df.columns:
-            print(f"✅ Demand information for final stores:")
+            print(f"[SUCCESS] Demand information for final stores:")
             total_demand = 0
             for idx, row in routes_df.iterrows():
                 print(f"  {row['store_id']}: {row[demand_col]:.1f} units")
                 total_demand += row[demand_col]
-            print(f"✅ Total demand for all selected stores: {total_demand:.1f} units")
+            print(f"[SUCCESS] Total demand for all selected stores: {total_demand:.1f} units")
 
-        print(f"\n✅ PROCEEDING WITH {len(routes_df)} STORES TO ROUTE OPTIMIZATION")
+        print(f"\n[SUCCESS] PROCEEDING WITH {len(routes_df)} STORES TO ROUTE OPTIMIZATION")
 
         # Initialize map
         center_lat = routes_df["lat"].mean()
@@ -565,10 +565,10 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 }
 
         print(f"\n=== FINAL RESULT ===")
-        print(f"✅ STORES COUNT IN RESULT: {route_result['stores_count']}")
-        print(f"✅ STATUS: {route_result['status']}")
-        print(f"✅ TOTAL DISTANCE: {route_result['total_distance']} km")
-        print(f"✅ RETURNING RESULT WITH {route_result['stores_count']} STORES")
+        print(f"[SUCCESS] STORES COUNT IN RESULT: {route_result['stores_count']}")
+        print(f"[SUCCESS] STATUS: {route_result['status']}")
+        print(f"[SUCCESS] TOTAL DISTANCE: {route_result['total_distance']} km")
+        print(f"[SUCCESS] RETURNING RESULT WITH {route_result['stores_count']} STORES")
 
         print(json.dumps(route_result))
         return route_result
