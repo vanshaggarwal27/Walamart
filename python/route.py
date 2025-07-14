@@ -287,9 +287,9 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         print(f"[OK] Found store IDs: {routes_df['store_id'].tolist()}")
 
         if len(routes_df) != len(selected_store_ids):
-            print(f"❌ CRITICAL: Expected {len(selected_store_ids)} stores, found {len(routes_df)}")
+            print(f"[ERROR] CRITICAL: Expected {len(selected_store_ids)} stores, found {len(routes_df)}")
             missing = set(selected_store_ids) - set(routes_df['store_id'].tolist())
-            print(f"❌ Missing stores: {missing}")
+            print(f"[ERROR] Missing stores: {missing}")
         else:
             print(f"[SUCCESS] SUCCESS: Found all {len(selected_store_ids)} selected stores")
 
@@ -332,7 +332,7 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
 
                 print("\n=== STEP 8: FINAL ROUTE SETUP ===")
         if len(routes_df) == 0:
-            print("❌ FATAL ERROR: No stores found for route optimization!")
+            print("[ERROR] FATAL ERROR: No stores found for route optimization!")
             raise ValueError("No stores found for the given criteria")
 
         print(f"[SUCCESS] FINAL STORE COUNT: {len(routes_df)} stores")
