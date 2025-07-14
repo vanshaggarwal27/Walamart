@@ -153,13 +153,20 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         else:
             raise ValueError(f"No demand column found. Available columns: {preds.columns.tolist()}")
 
-        print(f"Using demand column: {demand_col}")
-        state_demand = preds.groupby("state_id")[demand_col].sum().reset_index()
-        print("Aggregated predicted demand per state:\n", state_demand)
+                print(f"Using demand column: {demand_col}")
 
-        # Filter
-        selected_states = state_demand[state_demand.iloc[:,1] > threshold]
-        print("Selected states:\n", selected_states)
+        # Aggregate demand by individual store (not by state)
+        store_demand = preds.groupby("store_id")[demand_col].sum().reset_index()
+        print("Aggregated predicted demand per store:\n", store_demand)
+
+        # Sort stores by demand and select top N stores
+        store_demand = store_demand.sort_values(by=demand_col, ascending=False)
+        top_stores_list = store_demand.head(N)
+        print(f"Top {N} stores by demand:\n", top_stores_list)
+
+        # Get the list of selected store IDs
+        selected_store_ids = top_stores_list["store_id"].tolist()
+        print(f"Selected store IDs: {selected_store_ids}")
 
                 # Load or create mock store locations
         stores_file = uploads_dir / "store_locations.csv"
