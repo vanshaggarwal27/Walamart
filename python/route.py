@@ -244,10 +244,35 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         routes_df = stores[stores["store_id"].isin(selected_store_ids)]
         print(f"Stores found after filtering: {len(routes_df)}")
 
-        if len(routes_df) < len(selected_store_ids):
+                if len(routes_df) < len(selected_store_ids):
             print(f"WARNING: Only found {len(routes_df)} stores out of {len(selected_store_ids)} requested")
             missing_stores = set(selected_store_ids) - set(routes_df['store_id'].tolist())
             print(f"Missing stores: {missing_stores}")
+
+            # Create locations for missing stores
+            for missing_store in missing_stores:
+                state = missing_store.split('_')[0] if '_' in missing_store else 'CA'
+                state_coords = {
+                    'CA': (34.0522, -118.2437),
+                    'TX': (29.7604, -95.3698),
+                    'WI': (43.0731, -89.4012),
+                    'NY': (40.7128, -74.0060),
+                    'FL': (25.7617, -80.1918)
+                }
+                lat, lon = state_coords.get(state, (39.8283, -98.5795))
+
+                new_store = pd.DataFrame([{
+                    'store_id': missing_store,
+                    'state': state,
+                    'lat': lat,
+                    'lon': lon
+                }])
+                stores = pd.concat([stores, new_store], ignore_index=True)
+                print(f"Added missing store location: {missing_store} at {lat}, {lon}")
+
+            # Re-filter with updated stores
+            routes_df = stores[stores["store_id"].isin(selected_store_ids)]
+            print(f"After adding missing stores: {len(routes_df)} stores found")
 
         # Sort routes_df by demand to maintain the order
         routes_df = routes_df.merge(top_stores_list[["store_id", demand_col]], on="store_id", how="left")
