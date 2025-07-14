@@ -11,7 +11,7 @@ from route import haversine_distance, solve_tsp_networkx, greedy_tsp
 
 def test_tsp_algorithms():
     """Test TSP algorithms with sample coordinates"""
-    print("🧪 Testing TSP Optimization Algorithms")
+        print("Testing TSP Optimization Algorithms")
     print("=" * 40)
     
     # Sample store coordinates (California stores)
@@ -25,17 +25,17 @@ def test_tsp_algorithms():
     
     store_names = ["Los Angeles", "San Francisco", "San Diego", "Fresno", "Sacramento"]
     
-    print(f"📍 Testing with {len(test_coords)} stores:")
+        print(f"* Testing with {len(test_coords)} stores:")
     for i, (lat, lon) in enumerate(test_coords):
         print(f"  {i+1}. {store_names[i]}: ({lat:.4f}, {lon:.4f})")
     
-    print("\n🔄 Testing distance calculation...")
+        print("\n* Testing distance calculation...")
     # Test distance between LA and SF
     dist = haversine_distance(test_coords[0][0], test_coords[0][1], 
                             test_coords[1][0], test_coords[1][1])
-    print(f"Distance LA → SF: {dist:.1f} km")
+        print(f"Distance LA -> SF: {dist:.1f} km")
     
-    print("\n🎯 Testing TSP optimization...")
+        print("\n* Testing TSP optimization...")
     
     # Test original order total distance
     original_distance = 0
@@ -65,15 +65,15 @@ def test_tsp_algorithms():
         print(f"Improvement: {improvement:.1f}%")
         
         if improvement > 0:
-            print("✅ TSP optimization successful!")
+                        print("* TSP optimization successful!")
         else:
-            print("⚠️  TSP didn't improve route (acceptable for small instances)")
+                        print("* TSP didn't improve route (acceptable for small instances)")
             
     except Exception as e:
-        print(f"❌ TSP test failed: {e}")
+                print(f"* TSP test failed: {e}")
         return False
     
-    print("\n🎯 Testing greedy TSP fallback...")
+        print("\n* Testing greedy TSP fallback...")
     try:
         greedy_order = greedy_tsp(test_coords)
         print(f"Greedy order: {greedy_order}")
@@ -87,13 +87,13 @@ def test_tsp_algorithms():
             greedy_distance += haversine_distance(lat1, lon1, lat2, lon2)
         
         print(f"Greedy distance: {greedy_distance:.1f} km")
-        print("✅ Greedy TSP fallback working!")
+                print("* Greedy TSP fallback working!")
         
     except Exception as e:
-        print(f"❌ Greedy TSP test failed: {e}")
+                print(f"* Greedy TSP test failed: {e}")
         return False
     
-    print("\n🎉 All TSP tests passed!")
+        print("\n* All TSP tests passed!")
     return True
 
 if __name__ == "__main__":
