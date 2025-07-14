@@ -128,23 +128,14 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         print(f"Looking for predictions file: {preds_file}")
         print(f"Predictions file exists: {preds_file.exists()}")
 
-        if not preds_file.exists():
-            print("Predictions file not found. Creating mock predictions for demo...")
-            # Create mock predictions for demo
-            mock_predictions = pd.DataFrame({
-                'store_id': ['CA_1', 'CA_2', 'TX_1', 'TX_2', 'WI_1'],
-                'prediction': [150, 200, 175, 160, 145],
-                'date': pd.date_range('2024-01-01', periods=5)
-            })
-            mock_predictions.to_csv(preds_file, index=False)
-            preds = mock_predictions
-            print(f"Created mock predictions with shape: {mock_predictions.shape}")
-        else:
-            print("Loading existing predictions file...")
-            preds = pd.read_csv(preds_file)
-            print(f"Loaded predictions with shape: {preds.shape}")
-            print(f"Predictions columns: {preds.columns.tolist()}")
-            print(f"Sample predictions:\n{preds.head()}")
+                if not preds_file.exists():
+            raise FileNotFoundError(f"Predictions file not found: {preds_file}. Please generate predictions first using the prediction API.")
+
+        print("Loading existing predictions file...")
+        preds = pd.read_csv(preds_file)
+        print(f"Loaded predictions with shape: {preds.shape}")
+        print(f"Predictions columns: {preds.columns.tolist()}")
+        print(f"Sample predictions:\n{preds.head()}")
 
         preds["date"] = pd.to_datetime(preds["date"])
         preds["state_id"] = preds["store_id"].str[:2] if "store_id" in preds.columns else preds["id"].str.split("_").str[3]
