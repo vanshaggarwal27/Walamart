@@ -544,6 +544,12 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         else:
             route_efficiency = 100
 
+                print("\n=== STEP 10: GENERATING FINAL RESULT ===")
+        print(f"✓ Final routes_df length: {len(routes_df)}")
+        print(f"✓ Final coords length: {len(coords)}")
+        print(f"✓ Total distance: {total_distance_km:.1f} km")
+        print(f"✓ Total emissions: {total_emissions_kg:.1f} kg")
+
         # Prepare JSON response
         route_result = {
             "status": "success",
