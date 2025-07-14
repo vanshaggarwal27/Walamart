@@ -133,11 +133,13 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                         if not preds_file.exists():
             raise FileNotFoundError(f"Predictions file not found: {preds_file}. Please generate predictions first using the prediction API.")
 
-        print("Loading existing predictions file...")
+                print("Loading existing predictions file...")
         preds = pd.read_csv(preds_file)
         print(f"Loaded predictions with shape: {preds.shape}")
         print(f"Predictions columns: {preds.columns.tolist()}")
         print(f"Sample predictions:\n{preds.head()}")
+        print(f"Unique stores in predictions: {preds['store_id'].unique()}")
+        print(f"Total unique stores: {len(preds['store_id'].unique())}")
 
         preds["date"] = pd.to_datetime(preds["date"])
         # Extract state from store_id (format like "CA_1", "TX_2", etc.)
