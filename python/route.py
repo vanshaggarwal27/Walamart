@@ -112,6 +112,8 @@ def greedy_tsp(coords):
 def optimize_route(demand_threshold=10.0, top_stores=5):
     """Optimize delivery route based on demand predictions"""
     try:
+        print(f"=== ROUTE OPTIMIZATION STARTED ===")
+        print(f"Parameters: demand_threshold={demand_threshold}, top_stores={top_stores}")
         # CONFIG
         MAPTILER_KEY = "2sYJ1vozDNyamVYRoWLM"
         threshold = demand_threshold
