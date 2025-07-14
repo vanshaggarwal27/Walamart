@@ -209,12 +209,14 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             print(f"✓ Unique stores in predictions: {unique_stores}")
             print(f"✓ Total unique stores: {len(unique_stores)}")
 
-            # Ensure all selected stores are included
+                        # Ensure all selected stores are included
             all_stores_to_include = list(set(list(unique_stores) + selected_store_ids))
-            print(f"All stores to include (predictions + selected): {all_stores_to_include}")
+            print(f"✓ All stores to include: {all_stores_to_include}")
+            print(f"✓ Total stores to create locations for: {len(all_stores_to_include)}")
 
             # Create store locations for all unique stores found in predictions
             store_locations = []
+            print("✓ Creating store locations...")
 
             # Define coordinates for different states
             state_coords = {
