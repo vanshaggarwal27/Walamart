@@ -370,17 +370,23 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 popup=f"Store: {row['store_id']}<br>State: {row['state']}<br>Demand: {demand_value:.1f} units",
                 tooltip=f"{row['store_id']} ({row['state']}) - {demand_value:.1f} units",
                 icon=folium.Icon(color="red", icon="info-sign")
-                        ).add_to(m)
+                                    ).add_to(m)
 
+        print("\n=== STEP 9: TSP ROUTE OPTIMIZATION ===")
         # Calculate optimized route using TSP and OSRM
         coords = list(zip(routes_df["lat"], routes_df["lon"]))
         total_distance_km = 0
 
+        print(f"✓ Coordinates extracted: {coords}")
+        print(f"✓ Number of coordinates: {len(coords)}")
+
         if len(coords) > 1:
+            print(f"✓ Multiple stores - running TSP optimization")
             # Solve TSP to get optimal visiting order
-            print(f"Solving TSP for {len(coords)} stores...")
+            print(f"✓ Solving TSP for {len(coords)} stores...")
             optimal_order = solve_tsp_networkx(coords)
-                        print(f"Optimal visiting order: {optimal_order}")
+            print(f"✓ Optimal visiting order: {optimal_order}")
+            print(f"✓ TSP returned order for {len(optimal_order)} stores")
 
             # Reorder coordinates and routes_df according to TSP solution
             optimized_coords = [coords[i] for i in optimal_order]
