@@ -58,10 +58,10 @@ export function MapDisplaySection() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Interactive Route Map
+            TSP-Optimized Route Map
           </h1>
           <p className="text-muted-foreground mt-1">
-            Visualize optimized delivery routes and store locations
+            Visualize one-way optimized delivery routes with TSP algorithm
           </p>
         </div>
         <Button
@@ -103,12 +103,12 @@ export function MapDisplaySection() {
                 <div className="flex flex-col items-center justify-center h-full text-center bg-muted/50 rounded-lg p-6">
                   <MapPin className="h-16 w-16 text-muted-foreground/50 mb-4" />
                   <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                    {loading ? "Loading Map..." : "No Route Map Available"}
+                    {loading ? "Loading TSP Map..." : "No TSP Route Available"}
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-md">
                     {loading
-                      ? "Checking for available route maps..."
-                      : "Generate a delivery route in the Route Optimization section to view the interactive map here."}
+                      ? "Checking for TSP-optimized route maps..."
+                      : "Generate a TSP-optimized delivery route in the Route Optimization section to view the one-way optimized path here."}
                   </p>
                   {!loading && !mapData?.hasMap && (
                     <Button
@@ -169,7 +169,7 @@ export function MapDisplaySection() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Leaf className="h-5 w-5" />
-                Map Features
+                TSP Optimization Features
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -180,15 +180,19 @@ export function MapDisplaySection() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="text-sm">Optimized Route</span>
+                  <span className="text-sm">TSP One-Way Route</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                  <span className="text-sm">Route Direction Markers</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-sm">Emission Data</span>
+                  <span className="text-sm">CO₂ Emission Data</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                  <span className="text-sm">Route Summary</span>
+                  <span className="text-sm">Optimization Summary</span>
                 </div>
               </div>
             </CardContent>
