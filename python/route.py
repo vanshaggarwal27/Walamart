@@ -237,7 +237,7 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 optimized_distance += haversine_distance(lat1, lon1, lat2, lon2)
 
             improvement_pct = ((original_distance - optimized_distance) / original_distance * 100) if original_distance > 0 else 0
-            print(f"Route optimization: {improvement_pct:.1f}% improvement ({original_distance:.1f}km → {optimized_distance:.1f}km)")
+                        print(f"Route optimization: {improvement_pct:.1f}% improvement ({original_distance:.1f}km -> {optimized_distance:.1f}km)")
 
             print(f"Optimized route order:")
             for i, (idx, row) in enumerate(optimized_routes_df.iterrows()):
@@ -295,7 +295,7 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                         color="blue",
                         weight=5,
                         opacity=0.8,
-                        popup=f"Segment {i+1} → {i+2}"
+                                                popup=f"Segment {i+1} -> {i+2}"
                     ).add_to(m)
 
                     # Add direction arrows (simplified)
@@ -332,9 +332,9 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         ">
         <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Optimized Route Summary</h4>
         <p style="margin:0; font-size:14px;"><strong>Distance:</strong> {total_distance_km:.1f} km</p>
-        <p style="margin:0; font-size:14px;"><strong>CO₂ Emissions:</strong> {total_emissions_kg:.1f} kg</p>
-        <p style="margin:5px 0 0 0; font-size:12px; color:#666;">✓ TSP-optimized one-way route</p>
-        <p style="margin:0; font-size:12px; color:#666;">📍 {len(coords)} stores connected</p>
+                <p style="margin:0; font-size:14px;"><strong>CO2 Emissions:</strong> {total_emissions_kg:.1f} kg</p>
+                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">* TSP-optimized one-way route</p>
+                <p style="margin:0; font-size:12px; color:#666;">* {len(coords)} stores connected</p>
         </div>
         """
         m.get_root().html.add_child(folium.Element(summary_html))
