@@ -161,17 +161,67 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         selected_states = state_demand[state_demand.iloc[:,1] > threshold]
         print("Selected states:\n", selected_states)
 
-        # Load or create mock store locations
+                # Load or create mock store locations
         stores_file = uploads_dir / "store_locations.csv"
         if not stores_file.exists():
-            # Create mock store locations
-            mock_stores = pd.DataFrame({
-                'store_id': ['CA_1', 'CA_2', 'TX_1', 'TX_2', 'WI_1'],
-                'state': ['CA', 'CA', 'TX', 'TX', 'WI'],
-                'lat': [34.0522, 37.7749, 29.7604, 32.7767, 43.0731],
-                'lon': [-118.2437, -122.4194, -95.3698, -96.7970, -89.4012]
-            })
-            stores = mock_stores
+            # Get unique stores from predictions to create accurate mock data
+            unique_stores = preds['store_id'].unique()
+            print(f"Found stores in predictions: {unique_stores}")
+
+            # Create store locations for all unique stores found in predictions
+            store_locations = []
+
+            # Define coordinates for different states
+            state_coords = {
+                'CA': [(34.0522, -118.2437), (37.7749, -122.4194), (32.7157, -117.1611)],  # LA, SF, San Diego
+                'TX': [(29.7604, -95.3698), (32.7767, -96.7970), (30.2672, -97.7431)],    # Houston, Dallas, Austin
+                'WI': [(43.0731, -89.4012), (42.9634, -87.9073), (44.5133, -88.0133)],    # Madison, Milwaukee, Green Bay
+                'NY': [(40.7128, -74.0060), (42.6526, -73.7562), (43.1009, -77.6380)],    # NYC, Albany, Rochester
+                'FL': [(25.7617, -80.1918), (28.5383, -81.3792), (30.4518, -84.2807)]     # Miami, Orlando, Tallahassee
+            }
+
+            store_counter = {}
+            for store_id in unique_stores:
+                state = store_id.split('_')[0] if '_' in store_id else 'CA'
+                if state not in store_counter:
+                    store_counter[state] = 0
+
+                if state in state_coords and store_counter[state] < len(state_coords[state]):
+                    lat, lon = state_coords[state][store_counter[state]]
+                    store_counter[state] += 1
+                else:
+                    # Default coordinates if state not found or too many stores
+                    lat, lon = 39.8283, -98.5795  # Geographic center of US
+
+                store_locations.append({
+                    'store_id': store_id,
+                    'state': state,
+                    'lat': lat,
+                    'lon': lon
+                })
+
+            # If we don't have enough stores, add some additional ones for better demonstration
+            if len(store_locations) < 5:
+                additional_stores = [
+                    ('CA_1', 'CA', 34.0522, -118.2437),
+                    ('CA_2', 'CA', 37.7749, -122.4194),
+                    ('TX_1', 'TX', 29.7604, -95.3698),
+                    ('TX_2', 'TX', 32.7767, -96.7970),
+                    ('WI_1', 'WI', 43.0731, -89.4012)
+                ]
+
+                existing_store_ids = {loc['store_id'] for loc in store_locations}
+                for store_id, state, lat, lon in additional_stores:
+                    if store_id not in existing_store_ids:
+                        store_locations.append({
+                            'store_id': store_id,
+                            'state': state,
+                            'lat': lat,
+                            'lon': lon
+                        })
+
+            stores = pd.DataFrame(store_locations)
+            print(f"Created store locations for {len(stores)} stores")
         else:
             stores = pd.read_csv(stores_file)
 
