@@ -137,8 +137,12 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         print(f"Predictions columns: {preds.columns.tolist()}")
         print(f"Sample predictions:\n{preds.head()}")
 
-        preds["date"] = pd.to_datetime(preds["date"])
-        preds["state_id"] = preds["store_id"].str[:2] if "store_id" in preds.columns else preds["id"].str.split("_").str[3]
+                preds["date"] = pd.to_datetime(preds["date"])
+        # Extract state from store_id (format like "CA_1", "TX_2", etc.)
+        if "store_id" in preds.columns:
+            preds["state_id"] = preds["store_id"].str.split("_").str[0]
+        else:
+            raise ValueError("store_id column not found in predictions file")
 
         # Aggregate demand - handle both column name variations
         demand_col = None
