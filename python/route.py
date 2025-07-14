@@ -135,10 +135,10 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         print(f"Looking for predictions file: {preds_file}")
         print(f"Predictions file exists: {preds_file.exists()}")
 
-                        if not preds_file.exists():
+                                if not preds_file.exists():
             raise FileNotFoundError(f"Predictions file not found: {preds_file}. Please generate predictions first using the prediction API.")
 
-                print("Loading existing predictions file...")
+        print("Loading existing predictions file...")
         preds = pd.read_csv(preds_file)
         print(f"Loaded predictions with shape: {preds.shape}")
         print(f"Predictions columns: {preds.columns.tolist()}")
