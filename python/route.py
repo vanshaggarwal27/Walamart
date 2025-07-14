@@ -236,12 +236,25 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         else:
             stores = pd.read_csv(stores_file)
 
-                # Filter stores to only include the top N selected stores
+                        # Debug: Check what stores we have
+        print(f"Available stores in store locations: {stores['store_id'].tolist()}")
+        print(f"Selected store IDs to find: {selected_store_ids}")
+
+        # Filter stores to only include the top N selected stores
         routes_df = stores[stores["store_id"].isin(selected_store_ids)]
+        print(f"Stores found after filtering: {len(routes_df)}")
+
+        if len(routes_df) < len(selected_store_ids):
+            print(f"WARNING: Only found {len(routes_df)} stores out of {len(selected_store_ids)} requested")
+            missing_stores = set(selected_store_ids) - set(routes_df['store_id'].tolist())
+            print(f"Missing stores: {missing_stores}")
 
         # Sort routes_df by demand to maintain the order
         routes_df = routes_df.merge(top_stores_list[["store_id", demand_col]], on="store_id", how="left")
         routes_df = routes_df.sort_values(by=demand_col, ascending=False)
+
+        print(f"Final routes_df after merge and sort: {len(routes_df)} stores")
+        print(routes_df[['store_id', 'state', demand_col]].to_string())
 
                 if len(routes_df) == 0:
             raise ValueError("No stores found for the given criteria")
