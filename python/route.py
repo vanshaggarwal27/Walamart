@@ -312,9 +312,9 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 popup=f"Store: {row['store_id']}<br>State: {row['state']}<br>Demand: {demand_value:.1f} units",
                 tooltip=f"{row['store_id']} ({row['state']}) - {demand_value:.1f} units",
                 icon=folium.Icon(color="red", icon="info-sign")
-            ).add_to(m)
+                        ).add_to(m)
 
-                # Calculate optimized route using TSP and OSRM
+        # Calculate optimized route using TSP and OSRM
         coords = list(zip(routes_df["lat"], routes_df["lon"]))
         total_distance_km = 0
 
