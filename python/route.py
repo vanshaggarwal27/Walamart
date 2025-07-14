@@ -249,13 +249,13 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             stores = pd.read_csv(stores_file)
             print(f"Loaded store locations from file: {len(stores)} stores")
 
-                        # Debug: Check what stores we have
+                                # Debug: Check what stores we have
         print(f"Available stores in store locations: {stores['store_id'].tolist()}")
         print(f"Selected store IDs to find: {selected_store_ids}")
 
         # Filter stores to only include the top N selected stores
         routes_df = stores[stores["store_id"].isin(selected_store_ids)]
-                print(f"Stores found after filtering: {len(routes_df)}")
+        print(f"Stores found after filtering: {len(routes_df)}")
 
         if len(routes_df) < len(selected_store_ids):
             print(f"WARNING: Only found {len(routes_df)} stores out of {len(selected_store_ids)} requested")
