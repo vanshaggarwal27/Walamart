@@ -398,11 +398,11 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             font-family: Arial, sans-serif;
             z-index: 9999;
         ">
-        <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Optimized Route Summary</h4>
+                <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Top {N} Stores Route</h4>
         <p style="margin:0; font-size:14px;"><strong>Distance:</strong> {total_distance_km:.1f} km</p>
                 <p style="margin:0; font-size:14px;"><strong>CO2 Emissions:</strong> {total_emissions_kg:.1f} kg</p>
-                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">* TSP-optimized one-way route</p>
-                <p style="margin:0; font-size:12px; color:#666;">* {len(coords)} stores connected</p>
+                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">* TSP-optimized delivery route</p>
+                <p style="margin:0; font-size:12px; color:#666;">* {len(coords)} highest-demand stores</p>
         </div>
         """
         m.get_root().html.add_child(folium.Element(summary_html))
