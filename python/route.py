@@ -191,8 +191,8 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 'FL': [(25.7617, -80.1918), (28.5383, -81.3792), (30.4518, -84.2807)]     # Miami, Orlando, Tallahassee
             }
 
-            store_counter = {}
-            for store_id in unique_stores:
+                        store_counter = {}
+            for store_id in all_stores_to_include:
                 state = store_id.split('_')[0] if '_' in store_id else 'CA'
                 if state not in store_counter:
                     store_counter[state] = 0
