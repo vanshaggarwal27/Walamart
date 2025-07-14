@@ -114,11 +114,16 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
     try:
         print(f"=== ROUTE OPTIMIZATION STARTED ===")
         print(f"Parameters: demand_threshold={demand_threshold}, top_stores={top_stores}")
-        # CONFIG
+                # CONFIG
         MAPTILER_KEY = "2sYJ1vozDNyamVYRoWLM"
         threshold = demand_threshold
         N = top_stores
         EMISSION_FACTOR_KG_PER_KM = 0.27
+
+        print(f"CONFIG VALUES:")
+        print(f"  demand_threshold: {demand_threshold}")
+        print(f"  top_stores (N): {N}")
+        print(f"  threshold: {threshold}")
 
         # Paths
         base_dir = Path(__file__).parent.parent
