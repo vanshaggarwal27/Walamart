@@ -434,12 +434,12 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                     weight=3
                 ).add_to(m)
 
-        # Calculate emissions
+                # Calculate emissions
         total_emissions_kg = total_distance_km * EMISSION_FACTOR_KG_PER_KM
 
         # Green emission lines removed - keeping only blue route line
 
-                # Summary with optimization info
+        # Summary with optimization info
         summary_html = f"""
         <div style="
             position: fixed;
