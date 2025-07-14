@@ -414,7 +414,25 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                             icon_size=(20, 20),
                             icon_anchor=(10, 10)
                         )
-                    ).add_to(m)
+                                        ).add_to(m)
+        else:
+            # Handle single store case
+            print("Single store selected - no route optimization needed")
+            total_distance_km = 0  # No distance for single store
+
+            # Add a single marker for the store
+            if len(coords) == 1:
+                lat, lon = coords[0]
+                folium.CircleMarker(
+                    location=[lat, lon],
+                    radius=10,
+                    popup=f"Single Store: {routes_df.iloc[0]['store_id']}",
+                    color="green",
+                    fill=True,
+                    fillColor="green",
+                    fillOpacity=0.9,
+                    weight=3
+                ).add_to(m)
 
         # Calculate emissions
         total_emissions_kg = total_distance_km * EMISSION_FACTOR_KG_PER_KM
