@@ -267,22 +267,31 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                             'lon': lon
                         })
 
-                        stores = pd.DataFrame(store_locations)
-            print(f"Created store locations for {len(stores)} stores")
-            print(f"Store locations created:")
+                                    stores = pd.DataFrame(store_locations)
+            print(f"✓ Created store locations for {len(stores)} stores")
+            print(f"✓ Store locations created:")
             for idx, row in stores.iterrows():
                 print(f"  {row['store_id']}: {row['state']} at ({row['lat']}, {row['lon']})")
         else:
             stores = pd.read_csv(stores_file)
-            print(f"Loaded store locations from file: {len(stores)} stores")
+            print(f"✓ Loaded store locations from file: {len(stores)} stores")
 
-                                # Debug: Check what stores we have
-        print(f"Available stores in store locations: {stores['store_id'].tolist()}")
-        print(f"Selected store IDs to find: {selected_store_ids}")
+        print("\n=== STEP 7: FILTERING STORES ===")
+        print(f"✓ Available stores in locations: {stores['store_id'].tolist()}")
+        print(f"✓ Selected stores to find: {selected_store_ids}")
+        print(f"✓ Need to find {len(selected_store_ids)} stores")
 
         # Filter stores to only include the top N selected stores
         routes_df = stores[stores["store_id"].isin(selected_store_ids)]
-        print(f"Stores found after filtering: {len(routes_df)}")
+        print(f"✓ Stores found after filtering: {len(routes_df)}")
+        print(f"✓ Found store IDs: {routes_df['store_id'].tolist()}")
+
+        if len(routes_df) != len(selected_store_ids):
+            print(f"❌ CRITICAL: Expected {len(selected_store_ids)} stores, found {len(routes_df)}")
+            missing = set(selected_store_ids) - set(routes_df['store_id'].tolist())
+            print(f"❌ Missing stores: {missing}")
+        else:
+            print(f"✅ SUCCESS: Found all {len(selected_store_ids)} selected stores")
 
         if len(routes_df) < len(selected_store_ids):
             print(f"WARNING: Only found {len(routes_df)} stores out of {len(selected_store_ids)} requested")
