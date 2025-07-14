@@ -199,24 +199,24 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 print("\n=== STEP 6: STORE LOCATION SETUP ===")
         # Load or create mock store locations
         stores_file = uploads_dir / "store_locations.csv"
-        print(f"✓ Store locations file path: {stores_file}")
-        print(f"✓ Store locations file exists: {stores_file.exists()}")
+        print(f"[OK] Store locations file path: {stores_file}")
+        print(f"[OK] Store locations file exists: {stores_file.exists()}")
 
         if not stores_file.exists():
-            print("✓ Creating store locations from scratch")
+            print("[OK] Creating store locations from scratch")
             # Get unique stores from predictions, prioritizing selected stores
             unique_stores = preds['store_id'].unique()
-            print(f"✓ Unique stores in predictions: {unique_stores}")
-            print(f"✓ Total unique stores: {len(unique_stores)}")
+            print(f"[OK] Unique stores in predictions: {unique_stores}")
+            print(f"[OK] Total unique stores: {len(unique_stores)}")
 
                         # Ensure all selected stores are included
             all_stores_to_include = list(set(list(unique_stores) + selected_store_ids))
-            print(f"✓ All stores to include: {all_stores_to_include}")
-            print(f"✓ Total stores to create locations for: {len(all_stores_to_include)}")
+            print(f"[OK] All stores to include: {all_stores_to_include}")
+            print(f"[OK] Total stores to create locations for: {len(all_stores_to_include)}")
 
             # Create store locations for all unique stores found in predictions
             store_locations = []
-            print("✓ Creating store locations...")
+            print("[OK] Creating store locations...")
 
             # Define coordinates for different states
             state_coords = {
@@ -268,23 +268,23 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                         })
 
                                     stores = pd.DataFrame(store_locations)
-            print(f"✓ Created store locations for {len(stores)} stores")
-            print(f"✓ Store locations created:")
+            print(f"[OK] Created store locations for {len(stores)} stores")
+            print(f"[OK] Store locations created:")
             for idx, row in stores.iterrows():
                 print(f"  {row['store_id']}: {row['state']} at ({row['lat']}, {row['lon']})")
         else:
             stores = pd.read_csv(stores_file)
-            print(f"✓ Loaded store locations from file: {len(stores)} stores")
+            print(f"[OK] Loaded store locations from file: {len(stores)} stores")
 
         print("\n=== STEP 7: FILTERING STORES ===")
-        print(f"✓ Available stores in locations: {stores['store_id'].tolist()}")
-        print(f"✓ Selected stores to find: {selected_store_ids}")
-        print(f"✓ Need to find {len(selected_store_ids)} stores")
+        print(f"[OK] Available stores in locations: {stores['store_id'].tolist()}")
+        print(f"[OK] Selected stores to find: {selected_store_ids}")
+        print(f"[OK] Need to find {len(selected_store_ids)} stores")
 
         # Filter stores to only include the top N selected stores
         routes_df = stores[stores["store_id"].isin(selected_store_ids)]
-        print(f"✓ Stores found after filtering: {len(routes_df)}")
-        print(f"✓ Found store IDs: {routes_df['store_id'].tolist()}")
+        print(f"[OK] Stores found after filtering: {len(routes_df)}")
+        print(f"[OK] Found store IDs: {routes_df['store_id'].tolist()}")
 
         if len(routes_df) != len(selected_store_ids):
             print(f"❌ CRITICAL: Expected {len(selected_store_ids)} stores, found {len(routes_df)}")
@@ -377,16 +377,16 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         coords = list(zip(routes_df["lat"], routes_df["lon"]))
         total_distance_km = 0
 
-        print(f"✓ Coordinates extracted: {coords}")
-        print(f"✓ Number of coordinates: {len(coords)}")
+        print(f"[OK] Coordinates extracted: {coords}")
+        print(f"[OK] Number of coordinates: {len(coords)}")
 
         if len(coords) > 1:
-            print(f"✓ Multiple stores - running TSP optimization")
+            print(f"[OK] Multiple stores - running TSP optimization")
             # Solve TSP to get optimal visiting order
-            print(f"✓ Solving TSP for {len(coords)} stores...")
+            print(f"[OK] Solving TSP for {len(coords)} stores...")
             optimal_order = solve_tsp_networkx(coords)
-            print(f"✓ Optimal visiting order: {optimal_order}")
-            print(f"✓ TSP returned order for {len(optimal_order)} stores")
+            print(f"[OK] Optimal visiting order: {optimal_order}")
+            print(f"[OK] TSP returned order for {len(optimal_order)} stores")
 
             # Reorder coordinates and routes_df according to TSP solution
             optimized_coords = [coords[i] for i in optimal_order]
@@ -545,10 +545,10 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             route_efficiency = 100
 
                 print("\n=== STEP 10: GENERATING FINAL RESULT ===")
-        print(f"✓ Final routes_df length: {len(routes_df)}")
-        print(f"✓ Final coords length: {len(coords)}")
-        print(f"✓ Total distance: {total_distance_km:.1f} km")
-        print(f"✓ Total emissions: {total_emissions_kg:.1f} kg")
+        print(f"[OK] Final routes_df length: {len(routes_df)}")
+        print(f"[OK] Final coords length: {len(coords)}")
+        print(f"[OK] Total distance: {total_distance_km:.1f} km")
+        print(f"[OK] Total emissions: {total_emissions_kg:.1f} kg")
 
         # Prepare JSON response
         route_result = {
