@@ -562,7 +562,13 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             "optimization_method": "TSP + OSRM",
             "route_type": "one-way optimized",
             "map_file": str(output_map.name)
-        }
+                }
+
+        print(f"\n=== FINAL RESULT ===")
+        print(f"✅ STORES COUNT IN RESULT: {route_result['stores_count']}")
+        print(f"✅ STATUS: {route_result['status']}")
+        print(f"✅ TOTAL DISTANCE: {route_result['total_distance']} km")
+        print(f"✅ RETURNING RESULT WITH {route_result['stores_count']} STORES")
 
         print(json.dumps(route_result))
         return route_result
