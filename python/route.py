@@ -330,17 +330,26 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 print(f"Final routes_df after merge and sort: {len(routes_df)} stores")
         print(routes_df[['store_id', 'state', demand_col]].to_string())
 
+                print("\n=== STEP 8: FINAL ROUTE SETUP ===")
         if len(routes_df) == 0:
+            print("❌ FATAL ERROR: No stores found for route optimization!")
             raise ValueError("No stores found for the given criteria")
 
-        print(f"Final selected stores count: {len(routes_df)}")
-        print(f"Selected stores for route optimization:\n{routes_df[['store_id', 'state', 'lat', 'lon']]}")
+        print(f"✅ FINAL STORE COUNT: {len(routes_df)} stores")
+        print(f"✅ Final stores for route optimization:")
+        for idx, row in routes_df.iterrows():
+            print(f"  {idx+1}. {row['store_id']} ({row['state']}) at {row['lat']}, {row['lon']}")
 
         # Show demand information for selected stores
         if demand_col in routes_df.columns:
-            print(f"Demand information for selected stores:")
+            print(f"✅ Demand information for final stores:")
+            total_demand = 0
             for idx, row in routes_df.iterrows():
                 print(f"  {row['store_id']}: {row[demand_col]:.1f} units")
+                total_demand += row[demand_col]
+            print(f"✅ Total demand for all selected stores: {total_demand:.1f} units")
+
+        print(f"\n✅ PROCEEDING WITH {len(routes_df)} STORES TO ROUTE OPTIMIZATION")
 
         # Initialize map
         center_lat = routes_df["lat"].mean()
