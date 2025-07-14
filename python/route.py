@@ -280,8 +280,8 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         routes_df = routes_df.merge(top_stores_list[["store_id", demand_col]], on="store_id", how="left")
         routes_df = routes_df.sort_values(by=demand_col, ascending=False)
 
-        print(f"Final routes_df after merge and sort: {len(routes_df)} stores")
-                print(routes_df[['store_id', 'state', demand_col]].to_string())
+                print(f"Final routes_df after merge and sort: {len(routes_df)} stores")
+        print(routes_df[['store_id', 'state', demand_col]].to_string())
 
         if len(routes_df) == 0:
             raise ValueError("No stores found for the given criteria")
