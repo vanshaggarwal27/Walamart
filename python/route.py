@@ -72,12 +72,16 @@ def solve_tsp_networkx(coords):
 
         return best_path
 
-    # For larger instances, use NetworkX approximation
+        # For larger instances, use NetworkX approximation
     try:
-        # Use Christofides algorithm approximation
-        tsp_path = nx.approximation.traveling_salesman_problem(G, cycle=False)
-        return tsp_path
-    except:
+        # Try NetworkX TSP approximation (if available)
+        if hasattr(nx.approximation, 'traveling_salesman_problem'):
+            tsp_path = nx.approximation.traveling_salesman_problem(G, cycle=False)
+            return tsp_path
+        else:
+            raise AttributeError("NetworkX TSP not available")
+    except Exception as e:
+        print(f"NetworkX TSP failed: {e}, using greedy nearest neighbor")
         # Fallback to greedy nearest neighbor
         return greedy_tsp(coords)
 
@@ -214,9 +218,26 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             optimal_order = solve_tsp_networkx(coords)
             print(f"Optimal visiting order: {optimal_order}")
 
-            # Reorder coordinates and routes_df according to TSP solution
+                        # Reorder coordinates and routes_df according to TSP solution
             optimized_coords = [coords[i] for i in optimal_order]
             optimized_routes_df = routes_df.iloc[optimal_order].reset_index(drop=True)
+
+            # Store original order for comparison
+            original_distance = 0
+            for i in range(len(coords) - 1):
+                lat1, lon1 = coords[i]
+                lat2, lon2 = coords[i + 1]
+                original_distance += haversine_distance(lat1, lon1, lat2, lon2)
+
+            # Calculate optimized distance for comparison
+            optimized_distance = 0
+            for i in range(len(optimized_coords) - 1):
+                lat1, lon1 = optimized_coords[i]
+                lat2, lon2 = optimized_coords[i + 1]
+                optimized_distance += haversine_distance(lat1, lon1, lat2, lon2)
+
+            improvement_pct = ((original_distance - optimized_distance) / original_distance * 100) if original_distance > 0 else 0
+            print(f"Route optimization: {improvement_pct:.1f}% improvement ({original_distance:.1f}km → {optimized_distance:.1f}km)")
 
             print(f"Optimized route order:")
             for i, (idx, row) in enumerate(optimized_routes_df.iterrows()):
