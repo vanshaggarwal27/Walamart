@@ -266,12 +266,13 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             attr="MapTiler"
         )
 
-        # Add markers
+                # Add markers with demand information
         for idx, row in routes_df.iterrows():
+            demand_value = row.get(demand_col, 0)
             folium.Marker(
                 location=[row["lat"], row["lon"]],
-                popup=f"Store: {row['store_id']}<br>State: {row['state']}",
-                tooltip=f"{row['store_id']} ({row['state']})",
+                popup=f"Store: {row['store_id']}<br>State: {row['state']}<br>Demand: {demand_value:.1f} units",
+                tooltip=f"{row['store_id']} ({row['state']}) - {demand_value:.1f} units",
                 icon=folium.Icon(color="red", icon="info-sign")
             ).add_to(m)
 
