@@ -29,6 +29,8 @@ interface RouteSummary {
   co2_emissions: number;
   stores_count: number;
   route_efficiency: number;
+  optimization_method?: string;
+  route_type?: string;
 }
 
 export function RouteOptimizationSection({
@@ -152,10 +154,11 @@ export function RouteOptimizationSection({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Route Optimization
+            TSP-Optimized Route Generation
           </h1>
           <p className="text-muted-foreground mt-1">
-            Generate optimal delivery routes based on demand predictions
+            Generate one-way optimized delivery routes using Traveling Salesman
+            Problem (TSP) solver
           </p>
         </div>
       </div>
@@ -181,7 +184,8 @@ export function RouteOptimizationSection({
                 Route Parameters
               </CardTitle>
               <CardDescription>
-                Configure optimization parameters for route generation
+                Configure TSP optimization parameters for one-way route
+                generation
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -197,11 +201,15 @@ export function RouteOptimizationSection({
                 />
                 <p className="text-sm text-muted-foreground">
                   Minimum predicted demand (units) required to include a store
-                  in the route.
+                  in the optimized route.
                   <br />
                   <span className="text-blue-600">
                     💡 Tip: Your predictions range from 0.3-0.5 units. Try
                     0.3-0.4 for best results.
+                  </span>
+                  <br />
+                  <span className="text-green-600">
+                    ⚡ Uses TSP solver to find optimal visiting order
                   </span>
                 </p>
               </div>
@@ -220,7 +228,12 @@ export function RouteOptimizationSection({
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Maximum number of stores to include in the optimized route
+                  Maximum number of stores to include in the TSP-optimized
+                  one-way route
+                  <br />
+                  <span className="text-amber-600">
+                    📍 Route will be optimized for minimal travel distance
+                  </span>
                 </p>
               </div>
 
@@ -238,7 +251,7 @@ export function RouteOptimizationSection({
                 ) : (
                   <>
                     <Route className="mr-2 h-4 w-4" />
-                    Generate Delivery Route
+                    Generate TSP-Optimized Route
                   </>
                 )}
               </Button>
@@ -256,8 +269,17 @@ export function RouteOptimizationSection({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
-                  Route Summary ({routeSummary.stores_count} stores)
+                  TSP-Optimized Route Summary ({routeSummary.stores_count}{" "}
+                  stores)
                 </CardTitle>
+                <CardDescription>
+                  {routeSummary.optimization_method && (
+                    <span className="text-green-600 font-medium">
+                      ✓ {routeSummary.optimization_method} •{" "}
+                      {routeSummary.route_type}
+                    </span>
+                  )}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -285,10 +307,10 @@ export function RouteOptimizationSection({
                   </div>
                   <div className="text-center p-4 rounded-lg bg-purple-50">
                     <div className="text-2xl font-bold text-purple-600">
-                      {routeSummary.stores_count}
+                      {routeSummary.route_efficiency}%
                     </div>
                     <div className="text-sm text-purple-700">
-                      Stores (API: {routeSummary.stores_count})
+                      Route Efficiency
                     </div>
                   </div>
                 </div>
@@ -302,7 +324,7 @@ export function RouteOptimizationSection({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Truck className="h-5 w-5" />
-                Optimization Status
+                TSP Optimization Status
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -317,15 +339,31 @@ export function RouteOptimizationSection({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">Route Generation</span>
+                <span className="text-sm">TSP Route Generation</span>
                 <span
                   className={`text-sm font-medium ${
                     routeGenerated ? "text-green-600" : "text-gray-400"
                   }`}
                 >
-                  {routeGenerated ? "✓ Complete" : "Pending"}
+                  {routeGenerated ? "✓ Optimized" : "Pending"}
                 </span>
               </div>
+              {routeGenerated && routeSummary?.optimization_method && (
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Method:</span>
+                    <span className="font-medium">
+                      {routeSummary.optimization_method}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs mt-1">
+                    <span className="text-muted-foreground">Type:</span>
+                    <span className="font-medium">
+                      {routeSummary.route_type}
+                    </span>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
