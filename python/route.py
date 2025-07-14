@@ -165,10 +165,10 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         print(f"Top {N} stores by demand:\n", top_stores_list)
 
         # Get the list of selected store IDs
-        selected_store_ids = top_stores_list["store_id"].tolist()
+                selected_store_ids = top_stores_list["store_id"].tolist()
         print(f"Selected store IDs: {selected_store_ids}")
 
-                        # Load or create mock store locations
+        # Load or create mock store locations
         stores_file = uploads_dir / "store_locations.csv"
         if not stores_file.exists():
             # Get unique stores from predictions, prioritizing selected stores
