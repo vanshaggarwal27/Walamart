@@ -11,6 +11,99 @@ import requests
 import json
 import sys
 from pathlib import Path
+from math import sqrt, radians, cos, sin, asin
+from itertools import permutations
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+    """
+    # Convert decimal degrees to radians
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
+    # Haversine formula
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+
+    # Radius of earth in kilometers
+    r = 6371
+    return c * r
+
+def solve_tsp_networkx(coords):
+    """
+    Solve TSP using NetworkX approximation algorithm for small instances
+    or brute force for very small instances
+    """
+    n = len(coords)
+
+    if n <= 1:
+        return list(range(n))
+
+    # Create a complete graph
+    G = nx.complete_graph(n)
+
+    # Add edge weights (distances)
+    for i in range(n):
+        for j in range(i + 1, n):
+            lat1, lon1 = coords[i]
+            lat2, lon2 = coords[j]
+            distance = haversine_distance(lat1, lon1, lat2, lon2)
+            G[i][j]['weight'] = distance
+
+    # For small instances (≤ 8), use brute force
+    if n <= 8:
+        min_distance = float('inf')
+        best_path = None
+
+        for perm in permutations(range(1, n)):
+            # Always start from node 0
+            path = [0] + list(perm)
+            total_distance = 0
+
+            for i in range(n - 1):
+                total_distance += G[path[i]][path[i + 1]]['weight']
+
+            if total_distance < min_distance:
+                min_distance = total_distance
+                best_path = path
+
+        return best_path
+
+    # For larger instances, use NetworkX approximation
+    try:
+        # Use Christofides algorithm approximation
+        tsp_path = nx.approximation.traveling_salesman_problem(G, cycle=False)
+        return tsp_path
+    except:
+        # Fallback to greedy nearest neighbor
+        return greedy_tsp(coords)
+
+def greedy_tsp(coords):
+    """
+    Greedy nearest neighbor TSP heuristic
+    """
+    n = len(coords)
+    if n <= 1:
+        return list(range(n))
+
+    unvisited = set(range(1, n))  # Start from node 0
+    path = [0]
+    current = 0
+
+    while unvisited:
+        nearest = min(unvisited,
+                     key=lambda x: haversine_distance(
+                         coords[current][0], coords[current][1],
+                         coords[x][0], coords[x][1]
+                     ))
+        path.append(nearest)
+        unvisited.remove(nearest)
+        current = nearest
+
+    return path
 
 def optimize_route(demand_threshold=10.0, top_stores=5):
     """Optimize delivery route based on demand predictions"""
@@ -111,44 +204,89 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 icon=folium.Icon(color="red", icon="info-sign")
             ).add_to(m)
 
-        # Calculate route using OSRM or mock data
+                # Calculate optimized route using TSP and OSRM
         coords = list(zip(routes_df["lat"], routes_df["lon"]))
         total_distance_km = 0
 
         if len(coords) > 1:
+            # Solve TSP to get optimal visiting order
+            print(f"Solving TSP for {len(coords)} stores...")
+            optimal_order = solve_tsp_networkx(coords)
+            print(f"Optimal visiting order: {optimal_order}")
+
+            # Reorder coordinates and routes_df according to TSP solution
+            optimized_coords = [coords[i] for i in optimal_order]
+            optimized_routes_df = routes_df.iloc[optimal_order].reset_index(drop=True)
+
+            print(f"Optimized route order:")
+            for i, (idx, row) in enumerate(optimized_routes_df.iterrows()):
+                print(f"  {i+1}. {row['store_id']} ({row['state']}) - {row['lat']:.4f}, {row['lon']:.4f}")
+
             try:
-                # Try OSRM for routing
-                coord_str = ";".join([f"{lon},{lat}" for lat, lon in coords])
+                # Use optimized order for OSRM routing
+                coord_str = ";".join([f"{lon},{lat}" for lat, lon in optimized_coords])
                 osrm_url = f"http://router.project-osrm.org/route/v1/driving/{coord_str}?overview=full&geometries=geojson"
 
                 response = requests.get(osrm_url, timeout=10)
                 if response.status_code == 200:
                     data = response.json()
                     total_distance_km = data["routes"][0]["distance"] / 1000
+                    print(f"OSRM route distance: {total_distance_km:.1f} km")
 
-                    # Add route line
+                    # Add optimized route line
                     route_coords = [(coord[1], coord[0]) for coord in data["routes"][0]["geometry"]["coordinates"]]
                     folium.PolyLine(
                         locations=route_coords,
                         color="blue",
                         weight=5,
-                        opacity=0.8
+                        opacity=0.8,
+                        popup="Optimized Delivery Route"
                     ).add_to(m)
+
+                    # Add route direction indicators
+                    for i, (lat, lon) in enumerate(optimized_coords):
+                        folium.CircleMarker(
+                            location=[lat, lon],
+                            radius=8,
+                            popup=f"Stop {i+1}: {optimized_routes_df.iloc[i]['store_id']}",
+                            color="white",
+                            fill=True,
+                            fillColor="blue" if i == 0 else "red" if i == len(optimized_coords)-1 else "orange",
+                            fillOpacity=0.9,
+                            weight=2
+                        ).add_to(m)
                 else:
                     raise Exception("OSRM request failed")
 
             except Exception as e:
-                print(f"OSRM routing failed: {e}, using mock data")
-                # Mock distance calculation
-                total_distance_km = len(coords) * 50  # ~50km between stores
+                print(f"OSRM routing failed: {e}, using optimized mock data")
+                # Calculate mock distance using optimized order
+                total_distance_km = 0
+                for i in range(len(optimized_coords) - 1):
+                    lat1, lon1 = optimized_coords[i]
+                    lat2, lon2 = optimized_coords[i + 1]
+                    total_distance_km += haversine_distance(lat1, lon1, lat2, lon2)
 
-                # Add simple lines between consecutive points
-                for i in range(len(coords) - 1):
+                # Add simple lines between consecutive optimized points
+                for i in range(len(optimized_coords) - 1):
                     folium.PolyLine(
-                        locations=[coords[i], coords[i+1]],
+                        locations=[optimized_coords[i], optimized_coords[i+1]],
                         color="blue",
                         weight=5,
-                        opacity=0.8
+                        opacity=0.8,
+                        popup=f"Segment {i+1} → {i+2}"
+                    ).add_to(m)
+
+                    # Add direction arrows (simplified)
+                    mid_lat = (optimized_coords[i][0] + optimized_coords[i+1][0]) / 2
+                    mid_lon = (optimized_coords[i][1] + optimized_coords[i+1][1]) / 2
+                    folium.Marker(
+                        location=[mid_lat, mid_lon],
+                        icon=folium.DivIcon(
+                            html=f'<div style="font-size: 12px; color: blue;">→</div>',
+                            icon_size=(20, 20),
+                            icon_anchor=(10, 10)
+                        )
                     ).add_to(m)
 
         # Calculate emissions
@@ -156,24 +294,26 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
 
         # Green emission lines removed - keeping only blue route line
 
-        # Summary
+                # Summary with optimization info
         summary_html = f"""
         <div style="
             position: fixed;
             bottom: 50px;
             left: 50px;
-            width: 250px;
+            width: 280px;
             padding: 15px;
-            background-color: rgba(255,255,255,0.9);
+            background-color: rgba(255,255,255,0.95);
             border: 2px solid #333;
             border-radius: 8px;
             box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
             font-family: Arial, sans-serif;
             z-index: 9999;
         ">
-        <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Total Route Summary</h4>
+        <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Optimized Route Summary</h4>
         <p style="margin:0; font-size:14px;"><strong>Distance:</strong> {total_distance_km:.1f} km</p>
         <p style="margin:0; font-size:14px;"><strong>CO₂ Emissions:</strong> {total_emissions_kg:.1f} kg</p>
+        <p style="margin:5px 0 0 0; font-size:12px; color:#666;">✓ TSP-optimized one-way route</p>
+        <p style="margin:0; font-size:12px; color:#666;">📍 {len(coords)} stores connected</p>
         </div>
         """
         m.get_root().html.add_child(folium.Element(summary_html))
