@@ -301,10 +301,10 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                     # Add direction arrows (simplified)
                     mid_lat = (optimized_coords[i][0] + optimized_coords[i+1][0]) / 2
                     mid_lon = (optimized_coords[i][1] + optimized_coords[i+1][1]) / 2
-                    folium.Marker(
+                                        folium.Marker(
                         location=[mid_lat, mid_lon],
                         icon=folium.DivIcon(
-                            html=f'<div style="font-size: 12px; color: blue;">→</div>',
+                            html=f'<div style="font-size: 12px; color: blue;">-></div>',
                             icon_size=(20, 20),
                             icon_anchor=(10, 10)
                         )
