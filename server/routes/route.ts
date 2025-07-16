@@ -9,6 +9,11 @@ function executePythonScript(
   return new Promise((resolve, reject) => {
     const python = spawn("python", [scriptPath, ...args], {
       cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PYTHONIOENCODING: "utf-8",
+        PYTHONUTF8: "1",
+      },
     });
 
     let stdout = "";

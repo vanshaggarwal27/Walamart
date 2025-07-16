@@ -112,11 +112,18 @@ def greedy_tsp(coords):
 def optimize_route(demand_threshold=10.0, top_stores=5):
     """Optimize delivery route based on demand predictions"""
     try:
-        # CONFIG
+        print(f"=== ROUTE OPTIMIZATION STARTED ===")
+        print(f"Parameters: demand_threshold={demand_threshold}, top_stores={top_stores}")
+                # CONFIG
         MAPTILER_KEY = "2sYJ1vozDNyamVYRoWLM"
         threshold = demand_threshold
         N = top_stores
         EMISSION_FACTOR_KG_PER_KM = 0.27
+
+        print(f"CONFIG VALUES:")
+        print(f"  demand_threshold: {demand_threshold}")
+        print(f"  top_stores (N): {N}")
+        print(f"  threshold: {threshold}")
 
         # Paths
         base_dir = Path(__file__).parent.parent
@@ -128,26 +135,23 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         print(f"Looking for predictions file: {preds_file}")
         print(f"Predictions file exists: {preds_file.exists()}")
 
-        if not preds_file.exists():
-            print("Predictions file not found. Creating mock predictions for demo...")
-            # Create mock predictions for demo
-            mock_predictions = pd.DataFrame({
-                'store_id': ['CA_1', 'CA_2', 'TX_1', 'TX_2', 'WI_1'],
-                'prediction': [150, 200, 175, 160, 145],
-                'date': pd.date_range('2024-01-01', periods=5)
-            })
-            mock_predictions.to_csv(preds_file, index=False)
-            preds = mock_predictions
-            print(f"Created mock predictions with shape: {mock_predictions.shape}")
-        else:
-            print("Loading existing predictions file...")
-            preds = pd.read_csv(preds_file)
-            print(f"Loaded predictions with shape: {preds.shape}")
-            print(f"Predictions columns: {preds.columns.tolist()}")
-            print(f"Sample predictions:\n{preds.head()}")
+                                if not preds_file.exists():
+            raise FileNotFoundError(f"Predictions file not found: {preds_file}. Please generate predictions first using the prediction API.")
+
+        print("Loading existing predictions file...")
+        preds = pd.read_csv(preds_file)
+        print(f"Loaded predictions with shape: {preds.shape}")
+        print(f"Predictions columns: {preds.columns.tolist()}")
+        print(f"Sample predictions:\n{preds.head()}")
+        print(f"Unique stores in predictions: {preds['store_id'].unique()}")
+        print(f"Total unique stores: {len(preds['store_id'].unique())}")
 
         preds["date"] = pd.to_datetime(preds["date"])
-        preds["state_id"] = preds["store_id"].str[:2] if "store_id" in preds.columns else preds["id"].str.split("_").str[3]
+        # Extract state from store_id (format like "CA_1", "TX_2", etc.)
+        if "store_id" in preds.columns:
+            preds["state_id"] = preds["store_id"].str.split("_").str[0]
+        else:
+            raise ValueError("store_id column not found in predictions file")
 
         # Aggregate demand - handle both column name variations
         demand_col = None
@@ -158,35 +162,194 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
         else:
             raise ValueError(f"No demand column found. Available columns: {preds.columns.tolist()}")
 
-        print(f"Using demand column: {demand_col}")
-        state_demand = preds.groupby("state_id")[demand_col].sum().reset_index()
-        print("Aggregated predicted demand per state:\n", state_demand)
+                                                        print(f"[OK] Using demand column: {demand_col}")
+        print(f"[OK] Raw demand stats: min={preds[demand_col].min():.2f}, max={preds[demand_col].max():.2f}")
 
-        # Filter
-        selected_states = state_demand[state_demand.iloc[:,1] > threshold]
-        print("Selected states:\n", selected_states)
+        print("\n=== STEP 4: AGGREGATING DEMAND BY STORE ===")
+        # Aggregate demand by individual store (not by state)
+        store_demand = preds.groupby("store_id")[demand_col].sum().reset_index()
+        print(f"[OK] Aggregated demand for {len(store_demand)} stores")
+        print("[OK] All store demands:")
+        for idx, row in store_demand.iterrows():
+            print(f"  {row['store_id']}: {row[demand_col]:.1f} units")
 
+        print(f"\n=== STEP 5: SELECTING TOP {N} STORES ===")
+        print(f"[OK] Requested N = {N}")
+        print(f"[OK] Available stores = {len(store_demand)}")
+
+        # Sort stores by demand and select top N stores
+        store_demand = store_demand.sort_values(by=demand_col, ascending=False)
+        print(f"[OK] Stores sorted by demand")
+
+        top_stores_list = store_demand.head(N)
+        print(f"[OK] Selected top {len(top_stores_list)} stores:")
+        for idx, row in top_stores_list.iterrows():
+            print(f"  #{idx+1}: {row['store_id']} = {row[demand_col]:.1f} units")
+
+        # Get the list of selected store IDs
+        selected_store_ids = top_stores_list["store_id"].tolist()
+        print(f"[OK] Final selected store IDs: {selected_store_ids}")
+        print(f"[OK] Selected store count: {len(selected_store_ids)}")
+
+        if len(selected_store_ids) != N:
+            print(f"[ERROR] Expected {N} stores but got {len(selected_store_ids)}")
+        else:
+            print(f"[SUCCESS] Got exactly {N} stores as requested")
+
+                print("\n=== STEP 6: STORE LOCATION SETUP ===")
         # Load or create mock store locations
         stores_file = uploads_dir / "store_locations.csv"
+        print(f"[OK] Store locations file path: {stores_file}")
+        print(f"[OK] Store locations file exists: {stores_file.exists()}")
+
         if not stores_file.exists():
-            # Create mock store locations
-            mock_stores = pd.DataFrame({
-                'store_id': ['CA_1', 'CA_2', 'TX_1', 'TX_2', 'WI_1'],
-                'state': ['CA', 'CA', 'TX', 'TX', 'WI'],
-                'lat': [34.0522, 37.7749, 29.7604, 32.7767, 43.0731],
-                'lon': [-118.2437, -122.4194, -95.3698, -96.7970, -89.4012]
-            })
-            stores = mock_stores
+            print("[OK] Creating store locations from scratch")
+            # Get unique stores from predictions, prioritizing selected stores
+            unique_stores = preds['store_id'].unique()
+            print(f"[OK] Unique stores in predictions: {unique_stores}")
+            print(f"[OK] Total unique stores: {len(unique_stores)}")
+
+                        # Ensure all selected stores are included
+            all_stores_to_include = list(set(list(unique_stores) + selected_store_ids))
+            print(f"[OK] All stores to include: {all_stores_to_include}")
+            print(f"[OK] Total stores to create locations for: {len(all_stores_to_include)}")
+
+            # Create store locations for all unique stores found in predictions
+            store_locations = []
+            print("[OK] Creating store locations...")
+
+            # Define coordinates for different states
+            state_coords = {
+                'CA': [(34.0522, -118.2437), (37.7749, -122.4194), (32.7157, -117.1611)],  # LA, SF, San Diego
+                'TX': [(29.7604, -95.3698), (32.7767, -96.7970), (30.2672, -97.7431)],    # Houston, Dallas, Austin
+                'WI': [(43.0731, -89.4012), (42.9634, -87.9073), (44.5133, -88.0133)],    # Madison, Milwaukee, Green Bay
+                'NY': [(40.7128, -74.0060), (42.6526, -73.7562), (43.1009, -77.6380)],    # NYC, Albany, Rochester
+                'FL': [(25.7617, -80.1918), (28.5383, -81.3792), (30.4518, -84.2807)]     # Miami, Orlando, Tallahassee
+            }
+
+                        store_counter = {}
+            for store_id in all_stores_to_include:
+                state = store_id.split('_')[0] if '_' in store_id else 'CA'
+                if state not in store_counter:
+                    store_counter[state] = 0
+
+                if state in state_coords and store_counter[state] < len(state_coords[state]):
+                    lat, lon = state_coords[state][store_counter[state]]
+                    store_counter[state] += 1
+                else:
+                    # Default coordinates if state not found or too many stores
+                    lat, lon = 39.8283, -98.5795  # Geographic center of US
+
+                store_locations.append({
+                    'store_id': store_id,
+                    'state': state,
+                    'lat': lat,
+                    'lon': lon
+                })
+
+            # If we don't have enough stores, add some additional ones for better demonstration
+            if len(store_locations) < 5:
+                additional_stores = [
+                    ('CA_1', 'CA', 34.0522, -118.2437),
+                    ('CA_2', 'CA', 37.7749, -122.4194),
+                    ('TX_1', 'TX', 29.7604, -95.3698),
+                    ('TX_2', 'TX', 32.7767, -96.7970),
+                    ('WI_1', 'WI', 43.0731, -89.4012)
+                ]
+
+                existing_store_ids = {loc['store_id'] for loc in store_locations}
+                for store_id, state, lat, lon in additional_stores:
+                    if store_id not in existing_store_ids:
+                        store_locations.append({
+                            'store_id': store_id,
+                            'state': state,
+                            'lat': lat,
+                            'lon': lon
+                        })
+
+                                    stores = pd.DataFrame(store_locations)
+            print(f"[OK] Created store locations for {len(stores)} stores")
+            print(f"[OK] Store locations created:")
+            for idx, row in stores.iterrows():
+                print(f"  {row['store_id']}: {row['state']} at ({row['lat']}, {row['lon']})")
         else:
             stores = pd.read_csv(stores_file)
+            print(f"[OK] Loaded store locations from file: {len(stores)} stores")
 
-        routes_df = stores[stores["state"].isin(selected_states["state_id"])]
-        routes_df = routes_df.head(N)
+        print("\n=== STEP 7: FILTERING STORES ===")
+        print(f"[OK] Available stores in locations: {stores['store_id'].tolist()}")
+        print(f"[OK] Selected stores to find: {selected_store_ids}")
+        print(f"[OK] Need to find {len(selected_store_ids)} stores")
 
+        # Filter stores to only include the top N selected stores
+        routes_df = stores[stores["store_id"].isin(selected_store_ids)]
+        print(f"[OK] Stores found after filtering: {len(routes_df)}")
+        print(f"[OK] Found store IDs: {routes_df['store_id'].tolist()}")
+
+        if len(routes_df) != len(selected_store_ids):
+            print(f"[ERROR] CRITICAL: Expected {len(selected_store_ids)} stores, found {len(routes_df)}")
+            missing = set(selected_store_ids) - set(routes_df['store_id'].tolist())
+            print(f"[ERROR] Missing stores: {missing}")
+        else:
+            print(f"[SUCCESS] SUCCESS: Found all {len(selected_store_ids)} selected stores")
+
+        if len(routes_df) < len(selected_store_ids):
+            print(f"WARNING: Only found {len(routes_df)} stores out of {len(selected_store_ids)} requested")
+            missing_stores = set(selected_store_ids) - set(routes_df['store_id'].tolist())
+            print(f"Missing stores: {missing_stores}")
+
+            # Create locations for missing stores
+            for missing_store in missing_stores:
+                state = missing_store.split('_')[0] if '_' in missing_store else 'CA'
+                state_coords = {
+                    'CA': (34.0522, -118.2437),
+                    'TX': (29.7604, -95.3698),
+                    'WI': (43.0731, -89.4012),
+                    'NY': (40.7128, -74.0060),
+                    'FL': (25.7617, -80.1918)
+                }
+                lat, lon = state_coords.get(state, (39.8283, -98.5795))
+
+                new_store = pd.DataFrame([{
+                    'store_id': missing_store,
+                    'state': state,
+                    'lat': lat,
+                    'lon': lon
+                }])
+                stores = pd.concat([stores, new_store], ignore_index=True)
+                print(f"Added missing store location: {missing_store} at {lat}, {lon}")
+
+            # Re-filter with updated stores
+            routes_df = stores[stores["store_id"].isin(selected_store_ids)]
+            print(f"After adding missing stores: {len(routes_df)} stores found")
+
+        # Sort routes_df by demand to maintain the order
+        routes_df = routes_df.merge(top_stores_list[["store_id", demand_col]], on="store_id", how="left")
+        routes_df = routes_df.sort_values(by=demand_col, ascending=False)
+
+                print(f"Final routes_df after merge and sort: {len(routes_df)} stores")
+        print(routes_df[['store_id', 'state', demand_col]].to_string())
+
+                print("\n=== STEP 8: FINAL ROUTE SETUP ===")
         if len(routes_df) == 0:
+            print("[ERROR] FATAL ERROR: No stores found for route optimization!")
             raise ValueError("No stores found for the given criteria")
 
-        print(f"Selected stores:\n{routes_df}")
+        print(f"[SUCCESS] FINAL STORE COUNT: {len(routes_df)} stores")
+        print(f"[SUCCESS] Final stores for route optimization:")
+        for idx, row in routes_df.iterrows():
+            print(f"  {idx+1}. {row['store_id']} ({row['state']}) at {row['lat']}, {row['lon']}")
+
+        # Show demand information for selected stores
+        if demand_col in routes_df.columns:
+            print(f"[SUCCESS] Demand information for final stores:")
+            total_demand = 0
+            for idx, row in routes_df.iterrows():
+                print(f"  {row['store_id']}: {row[demand_col]:.1f} units")
+                total_demand += row[demand_col]
+            print(f"[SUCCESS] Total demand for all selected stores: {total_demand:.1f} units")
+
+        print(f"\n[SUCCESS] PROCEEDING WITH {len(routes_df)} STORES TO ROUTE OPTIMIZATION")
 
         # Initialize map
         center_lat = routes_df["lat"].mean()
@@ -199,26 +362,33 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             attr="MapTiler"
         )
 
-        # Add markers
+                # Add markers with demand information
         for idx, row in routes_df.iterrows():
+            demand_value = row.get(demand_col, 0)
             folium.Marker(
                 location=[row["lat"], row["lon"]],
-                popup=f"Store: {row['store_id']}<br>State: {row['state']}",
-                tooltip=f"{row['store_id']} ({row['state']})",
+                popup=f"Store: {row['store_id']}<br>State: {row['state']}<br>Demand: {demand_value:.1f} units",
+                tooltip=f"{row['store_id']} ({row['state']}) - {demand_value:.1f} units",
                 icon=folium.Icon(color="red", icon="info-sign")
-            ).add_to(m)
+                                    ).add_to(m)
 
-                # Calculate optimized route using TSP and OSRM
+        print("\n=== STEP 9: TSP ROUTE OPTIMIZATION ===")
+        # Calculate optimized route using TSP and OSRM
         coords = list(zip(routes_df["lat"], routes_df["lon"]))
         total_distance_km = 0
 
-        if len(coords) > 1:
-            # Solve TSP to get optimal visiting order
-            print(f"Solving TSP for {len(coords)} stores...")
-            optimal_order = solve_tsp_networkx(coords)
-            print(f"Optimal visiting order: {optimal_order}")
+        print(f"[OK] Coordinates extracted: {coords}")
+        print(f"[OK] Number of coordinates: {len(coords)}")
 
-                        # Reorder coordinates and routes_df according to TSP solution
+        if len(coords) > 1:
+            print(f"[OK] Multiple stores - running TSP optimization")
+            # Solve TSP to get optimal visiting order
+            print(f"[OK] Solving TSP for {len(coords)} stores...")
+            optimal_order = solve_tsp_networkx(coords)
+            print(f"[OK] Optimal visiting order: {optimal_order}")
+            print(f"[OK] TSP returned order for {len(optimal_order)} stores")
+
+            # Reorder coordinates and routes_df according to TSP solution
             optimized_coords = [coords[i] for i in optimal_order]
             optimized_routes_df = routes_df.iloc[optimal_order].reset_index(drop=True)
 
@@ -237,7 +407,7 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                 optimized_distance += haversine_distance(lat1, lon1, lat2, lon2)
 
             improvement_pct = ((original_distance - optimized_distance) / original_distance * 100) if original_distance > 0 else 0
-            print(f"Route optimization: {improvement_pct:.1f}% improvement ({original_distance:.1f}km → {optimized_distance:.1f}km)")
+                        print(f"Route optimization: {improvement_pct:.1f}% improvement ({original_distance:.1f}km -> {optimized_distance:.1f}km)")
 
             print(f"Optimized route order:")
             for i, (idx, row) in enumerate(optimized_routes_df.iterrows()):
@@ -295,27 +465,45 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
                         color="blue",
                         weight=5,
                         opacity=0.8,
-                        popup=f"Segment {i+1} → {i+2}"
+                                                popup=f"Segment {i+1} -> {i+2}"
                     ).add_to(m)
 
                     # Add direction arrows (simplified)
                     mid_lat = (optimized_coords[i][0] + optimized_coords[i+1][0]) / 2
                     mid_lon = (optimized_coords[i][1] + optimized_coords[i+1][1]) / 2
-                    folium.Marker(
+                                        folium.Marker(
                         location=[mid_lat, mid_lon],
                         icon=folium.DivIcon(
-                            html=f'<div style="font-size: 12px; color: blue;">→</div>',
+                            html=f'<div style="font-size: 12px; color: blue;">-></div>',
                             icon_size=(20, 20),
                             icon_anchor=(10, 10)
                         )
-                    ).add_to(m)
+                                        ).add_to(m)
+        else:
+            # Handle single store case
+            print("Single store selected - no route optimization needed")
+            total_distance_km = 0  # No distance for single store
 
-        # Calculate emissions
+            # Add a single marker for the store
+            if len(coords) == 1:
+                lat, lon = coords[0]
+                folium.CircleMarker(
+                    location=[lat, lon],
+                    radius=10,
+                    popup=f"Single Store: {routes_df.iloc[0]['store_id']}",
+                    color="green",
+                    fill=True,
+                    fillColor="green",
+                    fillOpacity=0.9,
+                    weight=3
+                ).add_to(m)
+
+                # Calculate emissions
         total_emissions_kg = total_distance_km * EMISSION_FACTOR_KG_PER_KM
 
         # Green emission lines removed - keeping only blue route line
 
-                # Summary with optimization info
+        # Summary with optimization info
         summary_html = f"""
         <div style="
             position: fixed;
@@ -330,20 +518,20 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             font-family: Arial, sans-serif;
             z-index: 9999;
         ">
-        <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Optimized Route Summary</h4>
+                        <h4 style="margin:0 0 10px 0; font-size:16px; color:#333;">Top {N} Stores Route</h4>
         <p style="margin:0; font-size:14px;"><strong>Distance:</strong> {total_distance_km:.1f} km</p>
-        <p style="margin:0; font-size:14px;"><strong>CO₂ Emissions:</strong> {total_emissions_kg:.1f} kg</p>
-        <p style="margin:5px 0 0 0; font-size:12px; color:#666;">✓ TSP-optimized one-way route</p>
-        <p style="margin:0; font-size:12px; color:#666;">📍 {len(coords)} stores connected</p>
+        <p style="margin:0; font-size:14px;"><strong>CO2 Emissions:</strong> {total_emissions_kg:.1f} kg</p>
+        <p style="margin:5px 0 0 0; font-size:12px; color:#666;">* TSP-optimized delivery route</p>
+        <p style="margin:0; font-size:12px; color:#666;">* {len(coords)} highest-demand stores</p>
         </div>
         """
         m.get_root().html.add_child(folium.Element(summary_html))
 
         # Save map
         output_map = data_dir / "delivery_route_maptiler_osrm_co2.html"
-        m.save(output_map)
+                m.save(output_map)
 
-                # Calculate route efficiency based on optimization
+        # Calculate route efficiency based on optimization
         if len(coords) > 1:
             # Calculate theoretical minimum distance (as the crow flies)
             direct_distance = 0
@@ -355,6 +543,12 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             route_efficiency = min(95, max(70, (direct_distance / total_distance_km * 100))) if total_distance_km > 0 else 85
         else:
             route_efficiency = 100
+
+                print("\n=== STEP 10: GENERATING FINAL RESULT ===")
+        print(f"[OK] Final routes_df length: {len(routes_df)}")
+        print(f"[OK] Final coords length: {len(coords)}")
+        print(f"[OK] Total distance: {total_distance_km:.1f} km")
+        print(f"[OK] Total emissions: {total_emissions_kg:.1f} kg")
 
         # Prepare JSON response
         route_result = {
@@ -368,7 +562,13 @@ def optimize_route(demand_threshold=10.0, top_stores=5):
             "optimization_method": "TSP + OSRM",
             "route_type": "one-way optimized",
             "map_file": str(output_map.name)
-        }
+                }
+
+        print(f"\n=== FINAL RESULT ===")
+        print(f"[SUCCESS] STORES COUNT IN RESULT: {route_result['stores_count']}")
+        print(f"[SUCCESS] STATUS: {route_result['status']}")
+        print(f"[SUCCESS] TOTAL DISTANCE: {route_result['total_distance']} km")
+        print(f"[SUCCESS] RETURNING RESULT WITH {route_result['stores_count']} STORES")
 
         print(json.dumps(route_result))
         return route_result
